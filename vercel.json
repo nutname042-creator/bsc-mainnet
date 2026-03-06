@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/rpc", "destination": "/api/rpc" },
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/rpc", "destination": "/api/rpc" }
   ]
 }
