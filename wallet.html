@@ -279,6 +279,39 @@ body::before{
     margin:0;
   }
 }
+
+/* ACCOUNT PICKER */
+.account-picker{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:600;padding:0;
+}
+.picker-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:24px 24px 0 0;width:100%;max-width:420px;
+  padding:24px 16px 40px;
+  animation:slideUp .3s ease;
+}
+.picker-header{margin-bottom:20px;padding:0 4px}
+.picker-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.picker-sub{font-size:13px;color:var(--muted2)}
+.account-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px;border-radius:16px;cursor:pointer;
+  transition:background .15s;margin-bottom:6px;
+  border:1px solid transparent;
+}
+.account-item:hover{background:var(--surface2);border-color:var(--border)}
+.account-avatar{
+  width:40px;height:40px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),#025fa5);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;color:#fff;flex-shrink:0;
+}
+.account-info{flex:1;min-width:0}
+.account-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.account-addr{font-size:12px;color:var(--muted2);font-family:'Roboto Mono',monospace}
+.account-check{width:20px;height:20px;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -288,6 +321,17 @@ body::before{
   <h2>Connect Wallet</h2>
   <p>Connect your MetaMask wallet to view balances and send tokens.</p>
   <button class="overlay-btn" onclick="connectWallet()">Connect MetaMask</button>
+</div>
+
+<!-- ACCOUNT PICKER -->
+<div class="account-picker" id="accountPicker" style="display:none">
+  <div class="picker-card">
+    <div class="picker-header">
+      <div class="picker-title">Select Account</div>
+      <div class="picker-sub">Choose which account to use</div>
+    </div>
+    <div id="accountList"></div>
+  </div>
 </div>
 
 <div class="app">
@@ -527,24 +571,56 @@ async function connectWallet() {
   if(!window.ethereum) { showToast('Open in MetaMask browser', 'e'); return; }
   try {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    account = accounts[0];
-    provider = new ethers.BrowserProvider(window.ethereum);
-    signer = await provider.getSigner();
+    if(!accounts || accounts.length === 0) { showToast('No accounts found', 'e'); return; }
 
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('connectBtn').textContent = account.slice(0,6)+'...'+account.slice(-4);
-    document.getElementById('connectBtn').className = 'connect-btn connected';
-    document.getElementById('walletAddr').style.display = 'flex';
-    document.getElementById('addrText').textContent = account.slice(0,10)+'...'+account.slice(-8);
+    if(accounts.length > 1) {
+      showAccountPicker(accounts);
+    } else {
+      await selectAccount(accounts[0]);
+    }
 
-    await refreshBalances();
-    setInterval(refreshBalances, 10000);
-
-    window.ethereum.on('accountsChanged', a => { account=a[0]; refreshBalances(); });
+    window.ethereum.on('accountsChanged', a => { 
+      if(a.length > 1) showAccountPicker(a);
+      else if(a.length === 1) selectAccount(a[0]);
+    });
     window.ethereum.on('chainChanged', () => location.reload());
   } catch(e) {
     showToast('Connection failed', 'e');
   }
+}
+
+function showAccountPicker(accounts) {
+  const picker = document.getElementById('accountPicker');
+  const list = document.getElementById('accountList');
+  list.innerHTML = accounts.map((addr, i) => `
+    <div class="account-item" onclick="selectAccount('${addr}')">
+      <div class="account-avatar">${i+1}</div>
+      <div class="account-info">
+        <div class="account-name">Account ${i+1}</div>
+        <div class="account-addr">${addr.slice(0,10)}...${addr.slice(-8)}</div>
+      </div>
+      <div class="account-check" id="check-${addr}"></div>
+    </div>
+  `).join('');
+  picker.style.display = 'flex';
+  document.getElementById('overlay').style.display = 'none';
+}
+
+async function selectAccount(addr) {
+  account = addr;
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer = await provider.getSigner(addr);
+
+  document.getElementById('accountPicker').style.display = 'none';
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('connectBtn').textContent = account.slice(0,6)+'...'+account.slice(-4);
+  document.getElementById('connectBtn').className = 'connect-btn connected';
+  document.getElementById('walletAddr').style.display = 'flex';
+  document.getElementById('addrText').textContent = account.slice(0,10)+'...'+account.slice(-8);
+
+  await refreshBalances();
+  clearInterval(window._balanceTimer);
+  window._balanceTimer = setInterval(refreshBalances, 10000);
 }
 
 // Load ethers
