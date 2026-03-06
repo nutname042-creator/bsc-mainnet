@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "https://bsc-simulation-production.up.railway.app/$1"
+    }
+  ]
+}
