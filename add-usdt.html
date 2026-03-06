@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add USDT to MetaMask</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#1c1c1e;border-radius:20px;padding:32px 24px;max-width:360px;width:100%;text-align:center}
+
+h1{font-size:22px;font-weight:700;margin-bottom:8px}
+p{color:#8e8e93;font-size:15px;line-height:1.5;margin-bottom:24px}
+.btn{width:100%;padding:16px;border-radius:14px;border:none;font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-blue{background:#0a84ff;color:#fff}
+.btn-blue:active{opacity:.8}
+.btn-green{background:#30d158;color:#fff}
+.btn-gray{background:#2c2c2e;color:#8e8e93;cursor:default}
+.status{margin-top:16px;font-size:14px;min-height:20px}
+.status.s{color:#30d158}
+.status.e{color:#ff453a}
+.status.i{color:#0a84ff}
+.token-info{background:#2c2c2e;border-radius:12px;padding:16px;margin-bottom:24px;text-align:left}
+.token-row{display:flex;align-items:center;gap:12px}
+.token-icon{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0}
+.token-icon img{width:100%;height:100%;object-fit:cover}
+.main-icon{width:80px;height:80px;margin:0 auto 16px}
+.token-name{font-size:17px;font-weight:600}
+.token-addr{font-size:12px;color:#8e8e93;margin-top:2px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="card">
+  <img class="main-icon" src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask"/>
+  <h1>Add USDT to Wallet</h1>
+  <p>Tap the button below to add USDT to your MetaMask dashboard. Your balance will show instantly.</p>
+  
+  <div class="token-info">
+    <div class="token-row">
+      <div class="token-icon"><img src="https://assets.coingecko.com/coins/images/325/small/Tether.png" alt="USDT"/></div>
+      <div>
+        <div class="token-name">Tether USD</div>
+        <div class="token-addr">0x55d398326f99059fF775485246999027B3197955</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-blue" id="btn" onclick="addToken()">Connect & Add USDT</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const USDT = '0x55d398326f99059fF775485246999027B3197955';
+
+function setStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+function setBtn(text, cls) {
+  const btn = document.getElementById('btn');
+  btn.textContent = text;
+  btn.className = 'btn ' + cls;
+}
+
+async function addToken() {
+  if (!window.ethereum) {
+    setStatus('Open this page in MetaMask browser', 'e');
+    return;
+  }
+
+  try {
+    // Step 1: Connect wallet
+    setStatus('Connecting wallet...', 'i');
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    setStatus('Wallet connected!', 's');
+
+    // Step 2: Add USDT token
+    setStatus('Adding USDT to dashboard...', 'i');
+    const wasAdded = await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: {
+          address: USDT,
+          symbol: 'USDT',
+          decimals: 18,
+          image: 'https://assets.coingecko.com/coins/images/325/small/Tether.png',
+        },
+      },
+    });
+
+    if (wasAdded) {
+      setStatus('✓ USDT added to your wallet!', 's');
+      setBtn('✓ Done!', 'btn-green');
+    } else {
+      setStatus('USDT not added', 'e');
+      setBtn('Try Again', 'btn-blue');
+    }
+  } catch (e) {
+    setStatus('Error: ' + (e.message || 'Something went wrong'), 'e');
+    setBtn('Try Again', 'btn-blue');
+  }
+}
+
+// Auto-connect if already connected
+window.addEventListener('load', async () => {
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts.length > 0) {
+      setStatus('Wallet already connected', 'i');
+      setBtn('Add USDT to Dashboard', 'btn-blue');
+    }
+  }
+});
+</script>
+</body>
+</html>
