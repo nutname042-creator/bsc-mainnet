@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
 
-  const RAILWAY_RPC = "https://your-railway-app.up.railway.app";
+  const RAILWAY_RPC = "https://bsc-simulation-production.up.railway.app";
 
   try {
 
@@ -9,14 +9,20 @@ export default async function handler(req, res) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(req.body)
+      body: req.method === "POST" ? JSON.stringify(req.body) : undefined
     });
 
-    const data = await response.json();
+    const data = await response.text();
 
-    res.status(200).json(data);
+    res.status(response.status).send(data);
 
   } catch (error) {
-    res.status(500).json({ error: "Proxy error" });
+
+    res.status(500).json({
+      error: "Proxy error",
+      message: error.message
+    });
+
   }
+
 }
