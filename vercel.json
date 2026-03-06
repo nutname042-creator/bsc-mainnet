@@ -1,8 +1,8 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "https://bsc-simulation-production.up.railway.app/$1"
+      "src": "/rpc",
+      "dest": "/api/rpc.js"
     }
   ]
 }
