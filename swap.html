@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Swap</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#24272a;
+  --surface:#141618;
+  --surface2:#1b1d1f;
+  --border:#3b3d42;
+  --text:#ffffff;
+  --muted:#858585;
+  --muted2:#9b9b9b;
+  --accent:#0376c9;
+  --accent2:#1ebc8d;
+  --red:#d73847;
+  --bnb:#f0b90b;
+  --usdt:#26a17b;
+  --pill:#2c2f33;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  height:100vh;max-height:100vh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* HEADER */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 12px;flex-shrink:0;
+}
+.back-btn{
+  width:32px;height:32px;background:var(--surface2);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);cursor:pointer;color:var(--text);
+  font-size:16px;text-decoration:none;
+}
+.header-title{font-size:17px;font-weight:700;letter-spacing:-.2px}
+.settings-btn{
+  width:32px;height:32px;background:var(--surface2);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);cursor:pointer;
+}
+.settings-btn svg{width:16px;height:16px;color:var(--muted2)}
+
+/* SWAP CONTAINER */
+.swap-wrap{
+  flex:1;display:flex;flex-direction:column;
+  padding:0 16px;overflow:hidden;gap:2px;
+}
+
+/* TOKEN BOX */
+.token-box{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:16px;position:relative;
+}
+.box-label{font-size:12px;font-weight:600;color:var(--muted2);margin-bottom:10px;letter-spacing:.02em}
+
+.box-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+.amount-left{flex:1;min-width:0}
+.amount-input{
+  font-size:clamp(28px,7vw,36px);font-weight:700;
+  color:var(--text);background:none;border:none;outline:none;
+  width:100%;letter-spacing:-.02em;
+  font-family:'Nunito Sans',sans-serif;
+}
+.amount-input::placeholder{color:var(--muted)}
+.amount-input:read-only{cursor:default}
+.amount-usd{font-size:13px;color:var(--muted2);margin-top:4px;font-family:'Roboto Mono',monospace}
+
+.token-pill{
+  display:flex;align-items:center;gap:8px;
+  background:var(--pill);border-radius:100px;
+  padding:8px 12px 8px 8px;flex-shrink:0;cursor:pointer;
+  border:1px solid var(--border);transition:border-color .2s;
+  min-width:100px;
+}
+.token-pill:hover{border-color:var(--accent)}
+.token-logo{width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0}
+.token-logo img{width:100%;height:100%;object-fit:cover}
+.token-pill-name{font-size:15px;font-weight:700}
+.token-pill-arrow{color:var(--muted2);font-size:12px;margin-left:2px}
+
+.bal-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;
+}
+.bal-text{font-size:12px;color:var(--muted2);font-family:'Roboto Mono',monospace}
+.pct-btns{display:flex;gap:4px}
+.pct-btn{
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--muted2);font-size:11px;font-weight:700;
+  padding:3px 8px;border-radius:6px;cursor:pointer;
+  font-family:'Nunito Sans',sans-serif;transition:all .15s;
+}
+.pct-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* SWAP DIVIDER */
+.swap-divider{
+  display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:10;margin:-2px 0;
+}
+.flip-btn{
+  width:36px;height:36px;background:var(--bg);
+  border:2px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;
+}
+.flip-btn:hover{border-color:var(--accent);transform:rotate(180deg)}
+.flip-btn svg{width:16px;height:16px;color:var(--text)}
+
+/* QUOTE DETAILS */
+.quote-details{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:12px 14px;margin-top:4px;
+  display:none;flex-direction:column;gap:0;
+}
+.quote-details.show{display:flex}
+.detail-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--border);
+}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-size:13px;color:var(--muted2);display:flex;align-items:center;gap:5px}
+.detail-val{font-size:13px;font-weight:600;color:var(--text)}
+.detail-val.green{color:var(--accent2)}
+.detail-val.red{color:var(--red)}
+.info-dot{
+  width:14px;height:14px;border:1px solid var(--muted);
+  border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--muted);
+}
+
+/* SWAP BUTTON */
+.swap-btn-wrap{padding:12px 16px 24px;flex-shrink:0}
+.swap-btn{
+  width:100%;padding:16px;border-radius:14px;border:none;
+  font-family:'Nunito Sans',sans-serif;font-size:16px;font-weight:800;
+  cursor:pointer;transition:all .2s;letter-spacing:.01em;
+}
+.swap-btn.idle{background:var(--surface2);color:var(--muted);cursor:default}
+.swap-btn.ready{background:var(--accent);color:#fff}
+.swap-btn.ready:hover{background:#025fa5}
+.swap-btn.loading{background:var(--accent);color:rgba(255,255,255,.7);cursor:default}
+.swap-btn.success{background:var(--accent2);color:#fff}
+.swap-btn.fail{background:var(--red);color:#fff}
+
+/* SLIPPAGE MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:none;align-items:flex-end;justify-content:center;z-index:500;
+}
+.modal-overlay.show{display:flex}
+.modal-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px 20px 0 0;width:100%;max-width:420px;
+  padding:20px 16px 36px;
+}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{font-size:20px;color:var(--muted2);cursor:pointer;background:none;border:none;color:var(--text)}
+.slip-options{display:flex;gap:8px;margin-bottom:14px}
+.slip-opt{
+  flex:1;padding:10px;border-radius:10px;
+  border:1px solid var(--border);background:var(--surface2);
+  text-align:center;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;
+}
+.slip-opt.active{border-color:var(--accent);background:rgba(3,118,201,.1);color:var(--accent)}
+.slip-custom{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:12px;color:var(--text);
+  font-family:'Nunito Sans',sans-serif;font-size:14px;outline:none;
+  text-align:center;
+}
+.slip-custom:focus{border-color:var(--accent)}
+
+/* TOAST */
+.toast{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;padding:10px 18px;font-size:13px;font-weight:600;
+  display:none;white-space:nowrap;z-index:999;
+}
+.toast.show{display:block}
+.toast.s{color:var(--accent2);border-color:rgba(30,188,141,.3)}
+.toast.e{color:var(--red);border-color:rgba(215,56,71,.3)}
+.toast.i{color:var(--accent);border-color:rgba(3,118,201,.3)}
+
+/* CONNECT OVERLAY */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.9);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;z-index:600;padding:32px;
+}
+.overlay-icon{font-size:44px;margin-bottom:4px}
+.overlay h2{font-size:22px;font-weight:800;text-align:center}
+.overlay p{color:var(--muted2);text-align:center;font-size:14px;line-height:1.6;max-width:280px}
+.overlay-btn{
+  background:var(--accent);color:#fff;border:none;
+  border-radius:14px;padding:15px 40px;
+  font-family:'Nunito Sans',sans-serif;font-size:16px;font-weight:800;
+  cursor:pointer;margin-top:8px;
+}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-icon">🦊</div>
+  <h2>Connect Wallet</h2>
+  <p>Open in MetaMask browser to swap BNB and USDT.</p>
+  <button class="overlay-btn" onclick="connectWallet()">Connect MetaMask</button>
+</div>
+
+<!-- SLIPPAGE MODAL -->
+<div class="modal-overlay" id="slipModal">
+  <div class="modal-card">
+    <div class="modal-title">
+      Max Slippage
+      <button class="modal-close" onclick="closeSlippage()">✕</button>
+    </div>
+    <div class="slip-options">
+      <div class="slip-opt active" onclick="setSlip('0.5')">0.5%</div>
+      <div class="slip-opt" onclick="setSlip('1')">1%</div>
+      <div class="slip-opt" onclick="setSlip('2')">2%</div>
+      <div class="slip-opt" onclick="setSlip('custom')">Custom</div>
+    </div>
+    <input class="slip-custom" id="slipCustom" type="number" placeholder="Enter %" style="display:none" oninput="customSlipInput(this.value)"/>
+  </div>
+</div>
+
+<div class="header">
+  <a class="back-btn" href="wallet.html">‹</a>
+  <div class="header-title">Swap</div>
+  <div class="settings-btn" onclick="document.getElementById('slipModal').classList.add('show')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </div>
+</div>
+
+<div class="swap-wrap">
+
+  <!-- FROM BOX -->
+  <div class="token-box">
+    <div class="box-label">You pay</div>
+    <div class="box-row">
+      <div class="amount-left">
+        <input class="amount-input" id="fromInput" placeholder="0" type="number" step="any" oninput="onFromInput()"/>
+        <div class="amount-usd" id="fromUSD"></div>
+      </div>
+      <div class="token-pill" onclick="flipTokens()">
+        <div class="token-logo" id="fromLogoWrap">
+          <img id="fromLogo" src="https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/info/logo.png" alt="BNB"/>
+        </div>
+        <span class="token-pill-name" id="fromName">BNB</span>
+        <span class="token-pill-arrow">⇅</span>
+      </div>
+    </div>
+    <div class="bal-row">
+      <div class="bal-text">Balance: <span id="fromBal">—</span></div>
+      <div class="pct-btns">
+        <div class="pct-btn" onclick="setPct(25)">25%</div>
+        <div class="pct-btn" onclick="setPct(50)">50%</div>
+        <div class="pct-btn" onclick="setMax()">Max</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLIP -->
+  <div class="swap-divider">
+    <div class="flip-btn" onclick="flipTokens()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- TO BOX -->
+  <div class="token-box">
+    <div class="box-label">You receive</div>
+    <div class="box-row">
+      <div class="amount-left">
+        <input class="amount-input" id="toInput" placeholder="0" readonly/>
+        <div class="amount-usd" id="toUSD"></div>
+      </div>
+      <div class="token-pill" onclick="flipTokens()">
+        <div class="token-logo" id="toLogoWrap">
+          <img id="toLogo" src="https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/0x55d398326f99059fF775485246999027B3197955/logo.png" alt="USDT"/>
+        </div>
+        <span class="token-pill-name" id="toName">USDT</span>
+        <span class="token-pill-arrow">⇅</span>
+      </div>
+    </div>
+    <div class="bal-row">
+      <div class="bal-text">Balance: <span id="toBal">—</span></div>
+    </div>
+  </div>
+
+  <!-- QUOTE DETAILS -->
+  <div class="quote-details" id="quoteDetails">
+    <div class="detail-row">
+      <span class="detail-key">Rate <span class="info-dot">i</span></span>
+      <span class="detail-val" id="rateVal">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-key">Max slippage <span class="info-dot">i</span></span>
+      <span class="detail-val" id="slipVal">1%</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-key">Min received <span class="info-dot">i</span></span>
+      <span class="detail-val" id="minVal">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-key">Price impact <span class="info-dot">i</span></span>
+      <span class="detail-val green" id="impactVal">—</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-key">Network fee</span>
+      <span class="detail-val">~$0.00</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- SWAP BUTTON -->
+<div class="swap-btn-wrap">
+  <button class="swap-btn idle" id="swapBtn" onclick="doSwap()">Enter an amount</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const RPC    = 'https://bsc-simulation-production.up.railway.app';
+const ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
+const WBNB   = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
+const USDT   = '0x55d398326f99059fF775485246999027B3197955';
+const PAIR   = '0xE50f8340074f6c4aED9633A69f73c36e5062B793';
+const ROUTER_ABI = ['function swapExactETHForTokens(uint256,address[],address,uint256) payable returns (uint256[])', 'function swapExactTokensForETH(uint256,uint256,address[],address,uint256) returns (uint256[])', 'function getAmountsOut(uint256,address[]) view returns (uint256[])'];
+const ERC20_ABI  = ['function balanceOf(address) view returns (uint256)', 'function allowance(address,address) view returns (uint256)', 'function approve(address,uint256) returns (bool)'];
+const PAIR_ABI   = ['function getReserves() view returns (uint112,uint112,uint32)', 'function token0() view returns (address)'];
+
+const BNB_LOGO  = 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/info/logo.png';
+const USDT_LOGO = 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/smartchain/assets/0x55d398326f99059fF775485246999027B3197955/logo.png';
+
+let provider, signer, account;
+let dir = 'BNB_TO_USDT';
+let bnbBal = 0n, usdtBal = 0n;
+let bnbPrice = 500;
+let slippage = 1;
+let lastQuoteOut = 0n;
+let quoteTimer = null;
+
+function showToast(msg, type='i') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── SLIPPAGE ────────────────────────────────────────────────────────────────
+function setSlip(val) {
+  document.querySelectorAll('.slip-opt').forEach(el => el.classList.remove('active'));
+  event.target.classList.add('active');
+  const custom = document.getElementById('slipCustom');
+  if(val === 'custom') { custom.style.display='block'; return; }
+  custom.style.display = 'none';
+  slippage = parseFloat(val);
+  document.getElementById('slipVal').textContent = slippage + '%';
+}
+function customSlipInput(v) {
+  if(v && parseFloat(v) > 0) { slippage = parseFloat(v); document.getElementById('slipVal').textContent = v + '%'; }
+}
+function closeSlippage() {
+  document.getElementById('slipModal').classList.remove('show');
+}
+
+// ── FLIP ─────────────────────────────────────────────────────────────────────
+function flipTokens() {
+  dir = dir === 'BNB_TO_USDT' ? 'USDT_TO_BNB' : 'BNB_TO_USDT';
+  const isBNB = dir === 'BNB_TO_USDT';
+  document.getElementById('fromLogo').src  = isBNB ? BNB_LOGO : USDT_LOGO;
+  document.getElementById('fromName').textContent = isBNB ? 'BNB' : 'USDT';
+  document.getElementById('toLogo').src    = isBNB ? USDT_LOGO : BNB_LOGO;
+  document.getElementById('toName').textContent   = isBNB ? 'USDT' : 'BNB';
+  document.getElementById('fromInput').value = '';
+  document.getElementById('toInput').value = '';
+  document.getElementById('fromUSD').textContent = '';
+  document.getElementById('toUSD').textContent = '';
+  document.getElementById('quoteDetails').classList.remove('show');
+  updateBals();
+  updateBtn();
+}
+
+// ── AMOUNT INPUT ─────────────────────────────────────────────────────────────
+function onFromInput() {
+  clearTimeout(quoteTimer);
+  updateFromUSD();
+  const val = parseFloat(document.getElementById('fromInput').value);
+  if(!val || val <= 0) {
+    document.getElementById('toInput').value = '';
+    document.getElementById('toUSD').textContent = '';
+    document.getElementById('quoteDetails').classList.remove('show');
+    updateBtn(); return;
+  }
+  updateBtn(false, true);
+  quoteTimer = setTimeout(getQuote, 450);
+}
+
+function updateFromUSD() {
+  const val = parseFloat(document.getElementById('fromInput').value) || 0;
+  if(!val) { document.getElementById('fromUSD').textContent = ''; return; }
+  const usd = dir === 'BNB_TO_USDT' ? val * bnbPrice : val;
+  document.getElementById('fromUSD').textContent = '$' + usd.toLocaleString('en', {maximumFractionDigits:2});
+}
+
+function setPct(pct) {
+  if(!account) return;
+  const bal = dir === 'BNB_TO_USDT' ? parseFloat(ethers.formatEther(bnbBal)) : parseFloat(ethers.formatUnits(usdtBal,18));
+  let amt = bal * pct / 100;
+  if(dir === 'BNB_TO_USDT' && pct >= 100) amt = Math.max(0, amt - 0.005);
+  document.getElementById('fromInput').value = amt.toFixed(dir === 'BNB_TO_USDT' ? 6 : 2);
+  onFromInput();
+}
+function setMax() { setPct(100); }
+
+// ── QUOTE ─────────────────────────────────────────────────────────────────────
+async function getQuote() {
+  if(!provider) return;
+  const val = document.getElementById('fromInput').value;
+  if(!val || parseFloat(val) <= 0) return;
+  try {
+    const rpcProv = new ethers.JsonRpcProvider(RPC);
+    const router = new ethers.Contract(ROUTER, ROUTER_ABI, rpcProv);
+    let amtIn, path;
+    if(dir === 'BNB_TO_USDT') { amtIn = ethers.parseEther(val); path = [WBNB, USDT]; }
+    else { amtIn = ethers.parseUnits(val, 18); path = [USDT, WBNB]; }
+
+    const amounts = await router.getAmountsOut(amtIn, path);
+    lastQuoteOut = amounts[1];
+    const outFmt = dir === 'BNB_TO_USDT' ? ethers.formatUnits(lastQuoteOut, 18) : ethers.formatEther(lastQuoteOut);
+    const outNum = parseFloat(outFmt);
+
+    document.getElementById('toInput').value = outNum >= 1000 ? outNum.toLocaleString('en',{maximumFractionDigits:4}) : outNum.toFixed(5);
+
+    const outUSD = dir === 'BNB_TO_USDT' ? outNum : outNum * bnbPrice;
+    document.getElementById('toUSD').textContent = '$' + outUSD.toLocaleString('en', {maximumFractionDigits:2});
+
+    // Details
+    const inNum = parseFloat(val);
+    const rate = outNum / inNum;
+    document.getElementById('rateVal').textContent = dir === 'BNB_TO_USDT'
+      ? `1 BNB = ${rate.toFixed(2)} USDT`
+      : `1 USDT = ${rate.toFixed(6)} BNB`;
+
+    const minOut = outNum * (1 - slippage/100);
+    document.getElementById('minVal').textContent = minOut.toFixed(dir === 'BNB_TO_USDT' ? 2 : 6) + (dir === 'BNB_TO_USDT' ? ' USDT' : ' BNB');
+
+    const inUSD = dir === 'BNB_TO_USDT' ? inNum * bnbPrice : inNum;
+    const impact = Math.abs((outUSD / inUSD - 1) * 100);
+    const impactEl = document.getElementById('impactVal');
+    impactEl.textContent = '-' + impact.toFixed(2) + '%';
+    impactEl.className = 'detail-val ' + (impact > 2 ? 'red' : 'green');
+
+    document.getElementById('quoteDetails').classList.add('show');
+    updateBtn(true);
+  } catch(e) {
+    document.getElementById('toInput').value = '';
+    document.getElementById('quoteDetails').classList.remove('show');
+    updateBtn();
+  }
+}
+
+// ── SWAP BUTTON ───────────────────────────────────────────────────────────────
+function updateBtn(hasQuote=false, loading=false) {
+  const btn = document.getElementById('swapBtn');
+  if(!account) { btn.className='swap-btn idle'; btn.textContent='Connect Wallet'; return; }
+  const val = parseFloat(document.getElementById('fromInput').value||'0');
+  if(!val||val<=0) { btn.className='swap-btn idle'; btn.textContent='Enter an amount'; return; }
+  const bal = dir==='BNB_TO_USDT' ? parseFloat(ethers.formatEther(bnbBal)) : parseFloat(ethers.formatUnits(usdtBal,18));
+  if(val > bal) { btn.className='swap-btn idle'; btn.textContent='Insufficient balance'; return; }
+  if(loading) { btn.className='swap-btn idle'; btn.textContent='Getting quote...'; return; }
+  if(!hasQuote) { btn.className='swap-btn idle'; btn.textContent='Enter an amount'; return; }
+  btn.className='swap-btn ready'; btn.textContent='Swap';
+}
+
+// ── DO SWAP ───────────────────────────────────────────────────────────────────
+async function doSwap() {
+  const btn = document.getElementById('swapBtn');
+  if(!btn.classList.contains('ready')) return;
+
+  const val = document.getElementById('fromInput').value;
+  const minOut = lastQuoteOut * BigInt(Math.floor((100-slippage)*10)) / 1000n;
+  const deadline = Math.floor(Date.now()/1000) + 1200;
+
+  btn.className='swap-btn loading'; btn.textContent='Confirm in wallet...';
+
+  try {
+    if(dir === 'USDT_TO_BNB') {
+      const usdt = new ethers.Contract(USDT, ERC20_ABI, provider);
+      const amtIn = ethers.parseUnits(val, 18);
+      const allowance = await usdt.allowance(account, ROUTER);
+      if(allowance < amtIn) {
+        btn.textContent = 'Approving...';
+        showToast('Approving USDT...', 'i');
+        const usdtW = new ethers.Contract(USDT, ERC20_ABI, signer);
+        await (await usdtW.approve(ROUTER, ethers.MaxUint256)).wait();
+        showToast('Approved!', 's');
+      }
+    }
+
+    const router = new ethers.Contract(ROUTER, ROUTER_ABI, signer);
+    let tx;
+    if(dir === 'BNB_TO_USDT') {
+      tx = await router.swapExactETHForTokens(minOut, [WBNB,USDT], account, deadline, { value: ethers.parseEther(val), gasLimit: 300000 });
+    } else {
+      tx = await router.swapExactTokensForETH(ethers.parseUnits(val,18), minOut, [USDT,WBNB], account, deadline, { gasLimit: 300000 });
+    }
+
+    btn.textContent = 'Swapping...';
+    showToast('Transaction sent...', 'i');
+    await tx.wait();
+
+    showToast('✓ Swap complete!', 's');
+    btn.className = 'swap-btn success'; btn.textContent = '✓ Done!';
+    document.getElementById('fromInput').value = '';
+    document.getElementById('toInput').value = '';
+    document.getElementById('quoteDetails').classList.remove('show');
+    await updateBals();
+    setTimeout(() => updateBtn(), 2000);
+  } catch(e) {
+    showToast('✗ ' + (e.shortMessage || e.message || 'Failed'), 'e');
+    btn.className='swap-btn ready'; btn.textContent='Swap';
+  }
+}
+
+// ── BALANCES ──────────────────────────────────────────────────────────────────
+async function updateBals() {
+  if(!account) return;
+  try {
+    const rpcProv = new ethers.JsonRpcProvider(RPC);
+    bnbBal = await rpcProv.getBalance(account);
+    const usdt = new ethers.Contract(USDT, ERC20_ABI, rpcProv);
+    usdtBal = await usdt.balanceOf(account);
+
+    const bnbFmt = parseFloat(ethers.formatEther(bnbBal)).toFixed(4);
+    const usdtFmt = parseFloat(ethers.formatUnits(usdtBal,18)).toLocaleString('en',{maximumFractionDigits:2});
+
+    if(dir === 'BNB_TO_USDT') {
+      document.getElementById('fromBal').textContent = bnbFmt + ' BNB';
+      document.getElementById('toBal').textContent = usdtFmt + ' USDT';
+    } else {
+      document.getElementById('fromBal').textContent = usdtFmt + ' USDT';
+      document.getElementById('toBal').textContent = bnbFmt + ' BNB';
+    }
+
+    // Get live price from pool
+    const pair = new ethers.Contract(PAIR, PAIR_ABI, rpcProv);
+    const [r0,r1] = await pair.getReserves();
+    const t0 = await pair.token0();
+    const [bnbR, usdtR] = t0.toLowerCase() === WBNB.toLowerCase() ? [r0,r1] : [r1,r0];
+    bnbPrice = Number(usdtR) / Number(bnbR);
+  } catch(e) {}
+}
+
+// ── CONNECT ───────────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if(!window.ethereum) { showToast('Open in MetaMask browser', 'e'); return; }
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    account = accounts[0];
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer = await provider.getSigner();
+    document.getElementById('overlay').style.display = 'none';
+    await updateBals();
+    window.ethereum.on('accountsChanged', a => { account=a[0]; updateBals(); });
+    window.ethereum.on('chainChanged', () => location.reload());
+  } catch(e) { showToast('Connection failed', 'e'); }
+}
+
+const s = document.createElement('script');
+s.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js';
+s.onload = () => { if(window.ethereum) connectWallet(); };
+document.head.appendChild(s);
+</script>
+</body>
+</html>
