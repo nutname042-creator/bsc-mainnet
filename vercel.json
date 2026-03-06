@@ -1,8 +1,6 @@
 {
-  "routes": [
-    {
-      "src": "/",
-      "dest": "/api/rpc.js"
-    }
+  "rewrites": [
+    { "source": "/rpc", "destination": "/api/rpc" },
+    { "source": "/", "destination": "/index.html" }
   ]
 }
