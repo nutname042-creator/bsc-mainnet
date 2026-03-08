@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
 
-  const RAILWAY_RPC = "https://bsc-simulation-production.up.railway.app";
+  const RAILWAY_RPC = "";
 
   try {
 
